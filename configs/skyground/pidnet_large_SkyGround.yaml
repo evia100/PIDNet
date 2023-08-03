@@ -1,0 +1,55 @@
+CUDNN:
+  BENCHMARK: true
+  DETERMINISTIC: false
+  ENABLED: true
+GPUS: (0,)
+OUTPUT_DIR: 'C:\Users\eviatarsegev\Desktop\Projects\Sky-Ground-Segmentation\output'
+LOG_DIR: 'log'
+WORKERS: 0
+PRINT_FREQ: 1
+
+DATASET:
+  DATASET: skyground
+  ROOT: C:\Users\eviatarsegev\Desktop\Projects\Sky-Ground-Segmentation\mid-air-dataset\
+  TEST_SET: 'val_full.lst'
+  TRAIN_SET: 'train_full.lst'
+  NUM_CLASSES: 2
+MODEL:
+  NAME: pidnet_large
+  NUM_OUTPUTS: 2
+  PRETRAINED: "C:/Users/eviatarsegev/Desktop/Projects/Sky-Ground-Segmentation/output/skyground/pidnet_large_skyGround/checkpoint_pidnet_large_2_epochs.pth.tar"
+LOSS:
+  USE_OHEM: true
+  OHEMTHRES: 0.9
+  OHEMKEEP: 131072
+  BALANCE_WEIGHTS: [0.4, 1.0]
+  SB_WEIGHTS: 1.0
+TRAIN:
+  IMAGE_SIZE:
+  - 480
+  - 640
+  BASE_SIZE: 1280
+  BATCH_SIZE_PER_GPU: 2
+  SHUFFLE: true
+  BEGIN_EPOCH: 0
+  END_EPOCH: 2
+  RESUME: false
+  OPTIMIZER: sgd
+  LR: 0.01
+  WD: 0.0005
+  MOMENTUM: 0.9
+  NESTEROV: false
+  FLIP: false
+  MULTI_SCALE: False
+  IGNORE_LABEL: 255
+  SCALE_FACTOR: 16
+TEST:
+  IMAGE_SIZE:
+  - 480
+  - 640
+  BASE_SIZE: 1280
+  BATCH_SIZE_PER_GPU: 2
+  FLIP_TEST: false
+  MULTI_SCALE: false
+  MODEL_FILE: 'C:\Users\eviatarsegev\Desktop\Projects\Sky-Ground-Segmentation\output\skyground\pidnet_large_skyGround\best.pt'
+  OUTPUT_INDEX: 1
