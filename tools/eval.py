@@ -24,17 +24,22 @@ from configs import update_config
 from utils.function import testval, test
 from utils.utils import create_logger
 
+
 def parse_args():
     parser = argparse.ArgumentParser(description='Train segmentation network')
     
     parser.add_argument('--cfg',
                         help='experiment configure file name',
-                        default="experiments/cityscapes/pidnet_small_cityscapes.yaml",
+                        default="../configs/SkyGround/pidnet_large_SkyGround.yaml",
                         type=str)
     parser.add_argument('opts',
                         help="Modify config options using the command-line",
                         default=None,
                         nargs=argparse.REMAINDER)
+    parser.add_argument('--sam_checkpoint', type=str,
+                        default=r"C:\Users\eviatarsegev\Desktop\Projects\Sky-Ground-Segmentation\segment-anything\sam_vit_h_4b8939.pth")
+    parser.add_argument('--sam_model_type', type=str,default="vit_h")
+    parser.add_argument('--sam_device', type=str,default="cuda")
 
     args = parser.parse_args()
     update_config(config, args)
@@ -84,6 +89,9 @@ def main():
     test_dataset = eval('datasets.'+config.DATASET.DATASET)(
                         root=config.DATASET.ROOT,
                         list_path=config.DATASET.TEST_SET,
+                        sam_checkpoint=args.sam_checkpoint,
+                        sam_model_type=args.sam_model_type,
+                        sam_device=args.sam_device,
                         num_classes=config.DATASET.NUM_CLASSES,
                         multi_scale=False,
                         flip=False,
@@ -112,7 +120,9 @@ def main():
         mean_IoU, IoU_array, pixel_acc, mean_acc = testval(config, 
                                                            test_dataset, 
                                                            testloader, 
-                                                           model)
+                                                           model,
+                                                           sv_dir=r"C:\Users\eviatarsegev\Desktop\Projects\Sky-Ground-Segmentation\output\inference_out",
+                                                           sv_pred=True)
     
         msg = 'MeanIU: {: 4.4f}, Pixel_Acc: {: 4.4f}, \
             Mean_Acc: {: 4.4f}, Class IoU: '.format(mean_IoU, 
@@ -122,7 +132,7 @@ def main():
 
 
     end = timeit.default_timer()
-    logger.info('Mins: %d' % np.int((end-start)/60))
+    logger.info('Mins: %d' % np.int64((end-start)/60))
     logger.info('Done')
 
 

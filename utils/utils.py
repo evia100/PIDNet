@@ -17,6 +17,9 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from configs import config
+import cv2
+import datetime
+import wandb
 
 class FullModel(nn.Module):
 
@@ -29,6 +32,12 @@ class FullModel(nn.Module):
   def pixel_acc(self, pred, label):
     _, preds = torch.max(pred, dim=1)
     valid = (label >= 0).long()
+    # log prediction to wandb
+    pred_image = preds[0].detach().cpu().numpy()
+    label_image = label[0].detach().cpu().numpy()
+    combined = combine_images_side_by_side(pred_image,label_image)
+    wandb.log({"pred_vs_label": wandb.Image(combined)})
+
     acc_sum = torch.sum(valid * (preds == label).long())
     pixel_sum = torch.sum(valid)
     acc = acc_sum.float() / (pixel_sum.float() + 1e-10)
@@ -133,7 +142,7 @@ def get_confusion_matrix(label, pred, size, num_class, ignore=-1):
     output = pred.cpu().numpy().transpose(0, 2, 3, 1)
     seg_pred = np.asarray(np.argmax(output, axis=3), dtype=np.uint8)
     seg_gt = np.asarray(
-    label.cpu().numpy()[:, :size[-2], :size[-1]], dtype=np.int)
+    label.cpu().numpy()[:, :size[-2], :size[-1]], dtype=np.int64)
 
     ignore_index = seg_gt != ignore
     seg_gt = seg_gt[ignore_index]
@@ -158,3 +167,13 @@ def adjust_learning_rate(optimizer, base_lr, max_iters,
     if len(optimizer.param_groups) == 2:
         optimizer.param_groups[1]['lr'] = lr * nbb_mult
     return lr
+
+def combine_images_side_by_side(image1, image2):
+    # Check if the images have the same size
+    if image1.shape != image2.shape:
+        raise ValueError("Both images must have the same size.")
+
+    # Combine the images side by side
+    combined_image = np.hstack((image1, image2))
+
+    return combined_image

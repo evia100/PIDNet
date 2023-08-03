@@ -120,8 +120,6 @@ class BaseDataset(data.Dataset):
 
         image = self.input_transform(image, city=city)
         label = self.label_transform(label)
-        
-
         image = image.transpose((2, 0, 1))
 
         if is_flip:

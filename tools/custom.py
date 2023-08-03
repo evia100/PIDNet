@@ -41,9 +41,9 @@ def parse_args():
     
     parser.add_argument('--a', help='pidnet-s, pidnet-m or pidnet-l', default='pidnet-l', type=str)
     parser.add_argument('--c', help='cityscapes pretrained or not', type=bool, default=True)
-    parser.add_argument('--p', help='dir for pretrained model', default='../pretrained_models/cityscapes/PIDNet_L_Cityscapes_test.pt', type=str)
+    parser.add_argument('--p', help='dir for pretrained model', default=r'C:\Users\eviatarsegev\Desktop\Projects\Sky-Ground-Segmentation\output\skyground\pidnet_large_skyGround\best.pt', type=str)
     parser.add_argument('--r', help='root or dir for input images', default='../samples/', type=str)
-    parser.add_argument('--t', help='the format of input images (.jpg, .png, ...)', default='.png', type=str)     
+    parser.add_argument('--t', help='the format of input images (.jpg, .png, ...)', default='.jpg', type=str)
 
     args = parser.parse_args()
 
@@ -100,7 +100,7 @@ if __name__ == '__main__':
             
             if not os.path.exists(sv_path):
                 os.mkdir(sv_path)
-            sv_img.save(sv_path+img_name)
+            sv_img.save(sv_path+'_masked_'+img_name)
             
             
             

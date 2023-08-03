@@ -25,7 +25,7 @@ from configs import update_config
 from utils.criterion import CrossEntropy, OhemCrossEntropy, BondaryLoss
 from utils.function import train, validate
 from utils.utils import create_logger, FullModel
-
+import wandb
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Train segmentation network')
@@ -39,6 +39,12 @@ def parse_args():
                         help="Modify config options using the command-line",
                         default=None,
                         nargs=argparse.REMAINDER)
+    parser.add_argument('--sam_checkpoint', type=str,
+                        default=r"C:\Users\eviatarsegev\Desktop\Projects\Sky-Ground-Segmentation\segment-anything\sam_vit_h_4b8939.pth")
+    parser.add_argument('--sam_model_type', type=str,default="vit_h")
+    parser.add_argument('--sam_device', type=str,default="cuda")
+    parser.add_argument('--use_teacher_model', type=int, default=0)
+
 
     args = parser.parse_args()
     update_config(config, args)
@@ -48,6 +54,14 @@ def parse_args():
 
 def main():
     args = parse_args()
+
+    # start a new wandb run to track this script
+    arch_type = config.MODEL.NAME
+    epoch_num = config.TRAIN.END_EPOCH
+    dataset_name =config.DATASET.DATASET
+    image_size = config.TRAIN.IMAGE_SIZE
+    run_name = arch_type+"_" +str(epoch_num)+"_epochs" +"_"+dataset_name+"_"+str(image_size)
+    wandb.init(project="segmentation",config=config,name=run_name)
 
     if args.seed > 0:
         import random
@@ -85,6 +99,10 @@ def main():
     train_dataset = eval('datasets.'+config.DATASET.DATASET)(
                         root=config.DATASET.ROOT,
                         list_path=config.DATASET.TRAIN_SET,
+                        sam_checkpoint=args.sam_checkpoint,
+                        sam_model_type=args.sam_model_type,
+                        sam_device=args.sam_device,
+                        use_teacher_model=args.use_teacher_model,
                         num_classes=config.DATASET.NUM_CLASSES,
                         multi_scale=config.TRAIN.MULTI_SCALE,
                         flip=config.TRAIN.FLIP,
@@ -106,6 +124,10 @@ def main():
     test_dataset = eval('datasets.'+config.DATASET.DATASET)(
                         root=config.DATASET.ROOT,
                         list_path=config.DATASET.TEST_SET,
+                        sam_checkpoint=args.sam_checkpoint,
+                        sam_model_type=args.sam_model_type,
+                        sam_device=args.sam_device,
+                        use_teacher_model=args.use_teacher_model,
                         num_classes=config.DATASET.NUM_CLASSES,
                         multi_scale=False,
                         flip=False,
@@ -188,7 +210,7 @@ def main():
             flag_rm = 0
 
         logger.info('=> saving checkpoint to {}'.format(
-            final_output_dir + 'checkpoint.pth.tar'))
+            final_output_dir + r'\checkpoint.pth.tar'))
         torch.save({
             'epoch': epoch+1,
             'best_mIoU': best_mIoU,
@@ -211,7 +233,7 @@ def main():
 
     writer_dict['writer'].close()
     end = timeit.default_timer()
-    logger.info('Hours: %d' % np.int((end-start)/3600))
+    logger.info('Hours: %d' % np.int64((end-start)/3600))
     logger.info('Done')
 
 if __name__ == '__main__':

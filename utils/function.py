@@ -15,7 +15,7 @@ from torch.nn import functional as F
 from utils.utils import AverageMeter
 from utils.utils import get_confusion_matrix
 from utils.utils import adjust_learning_rate
-
+import wandb
 
 
 def train(config, epoch, num_epoch, epoch_iters, base_lr,
@@ -62,6 +62,11 @@ def train(config, epoch, num_epoch, epoch_iters, base_lr,
                                   base_lr,
                                   num_iters,
                                   i_iter+cur_iters)
+
+        # Log metrics to wandb
+        wandb.log({"Epoch": epoch, "batch time avg": batch_time.average(), "lr": [x['lr'] for x in optimizer.param_groups],
+                   "Loss": ave_loss.average(),"Acc": ave_acc.average(),"Semantic loss": avg_sem_loss.average(),
+                   "BCE loss": avg_bce_loss.average(),"SB loss":ave_loss.average()-avg_sem_loss.average()-avg_bce_loss.average()})
 
         if i_iter % config.PRINT_FREQ == 0:
             msg = 'Epoch: [{}/{}] Iter:[{}/{}], Time: {:.2f}, ' \
