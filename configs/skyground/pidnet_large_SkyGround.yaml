@@ -3,7 +3,7 @@ CUDNN:
   DETERMINISTIC: false
   ENABLED: true
 GPUS: (0,)
-OUTPUT_DIR: 'C:\Users\eviatarsegev\Desktop\Projects\Sky-Ground-Segmentation\output'
+OUTPUT_DIR: 'C:\Users\eviatarsegev\Desktop\Projects\SkyDetector\output'
 LOG_DIR: 'log'
 WORKERS: 0
 PRINT_FREQ: 1
@@ -11,8 +11,8 @@ PRINT_FREQ: 1
 DATASET:
   DATASET: skyground
   ROOT: C:\Users\eviatarsegev\Desktop\Projects\Sky-Ground-Segmentation\mid-air-dataset\
-  TEST_SET: 'val_full.lst'
-  TRAIN_SET: 'train_full.lst'
+  TEST_SET: 'val_partly.lst'
+  TRAIN_SET: 'train_partly.lst'
   NUM_CLASSES: 2
 MODEL:
   NAME: pidnet_large
@@ -32,7 +32,7 @@ TRAIN:
   BATCH_SIZE_PER_GPU: 2
   SHUFFLE: true
   BEGIN_EPOCH: 0
-  END_EPOCH: 2
+  END_EPOCH: 1
   RESUME: false
   OPTIMIZER: sgd
   LR: 0.01

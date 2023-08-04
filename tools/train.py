@@ -26,6 +26,7 @@ from utils.criterion import CrossEntropy, OhemCrossEntropy, BondaryLoss
 from utils.function import train, validate
 from utils.utils import create_logger, FullModel
 import wandb
+from datetime import datetime
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Train segmentation network')
@@ -40,7 +41,7 @@ def parse_args():
                         default=None,
                         nargs=argparse.REMAINDER)
     parser.add_argument('--sam_checkpoint', type=str,
-                        default=r"C:\Users\eviatarsegev\Desktop\Projects\Sky-Ground-Segmentation\segment-anything\sam_vit_h_4b8939.pth")
+                        default=r"C:\Users\eviatarsegev\Desktop\Projects\SkyDetector\sam_vit_h_4b8939.pth")
     parser.add_argument('--sam_model_type', type=str,default="vit_h")
     parser.add_argument('--sam_device', type=str,default="cuda")
     parser.add_argument('--use_teacher_model', type=int, default=0)
@@ -55,12 +56,15 @@ def parse_args():
 def main():
     args = parse_args()
 
+    # Get the current date and time as a timestamp
+    timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+
     # start a new wandb run to track this script
     arch_type = config.MODEL.NAME
     epoch_num = config.TRAIN.END_EPOCH
     dataset_name =config.DATASET.DATASET
     image_size = config.TRAIN.IMAGE_SIZE
-    run_name = arch_type+"_" +str(epoch_num)+"_epochs" +"_"+dataset_name+"_"+str(image_size)
+    run_name = arch_type+"_" +str(epoch_num)+"_epochs" +"_"+dataset_name+"_"+str(image_size)+"_"+timestamp
     wandb.init(project="segmentation",config=config,name=run_name)
 
     if args.seed > 0:
@@ -209,27 +213,40 @@ def main():
         if flag_rm == 1:
             flag_rm = 0
 
+        # Construct the checkpoint file name with the timestamp
+        checkpoint_filename = 'checkpoint_{}.pth.tar'.format(timestamp)
+        checkpoint_filepath = os.path.join(final_output_dir, checkpoint_filename)
+
+        # Check if the directory exists or create it
+        os.makedirs(final_output_dir, exist_ok=True)
+
         logger.info('=> saving checkpoint to {}'.format(
-            final_output_dir + r'\checkpoint.pth.tar'))
+            checkpoint_filepath))
         torch.save({
             'epoch': epoch+1,
             'best_mIoU': best_mIoU,
             'state_dict': model.module.state_dict(),
             'optimizer': optimizer.state_dict(),
-        }, os.path.join(final_output_dir,'checkpoint.pth.tar'))
+        },checkpoint_filepath)
+
+
         if mean_IoU > best_mIoU:
             best_mIoU = mean_IoU
+            # Append the mIoU value to the filename
+            best_mIoU_filename = 'best_mIoU_{:.4f}_{}.pt'.format(best_mIoU, timestamp)
+            best_mIoU_filepath = os.path.join(final_output_dir, best_mIoU_filename)
             torch.save(model.module.state_dict(),
-                    os.path.join(final_output_dir, 'best.pt'))
+                    best_mIoU_filepath)
         msg = 'Loss: {:.3f}, MeanIU: {: 4.4f}, Best_mIoU: {: 4.4f}'.format(
                     valid_loss, mean_IoU, best_mIoU)
         logging.info(msg)
         logging.info(IoU_array)
 
-
-
+    # Append final_state to the filename
+    final_state = 'final_state_{}.pt'.format(timestamp)
+    final_state_filepath = os.path.join(final_output_dir, final_state)
     torch.save(model.module.state_dict(),
-            os.path.join(final_output_dir, 'final_state.pt'))
+            final_state_filepath)
 
     writer_dict['writer'].close()
     end = timeit.default_timer()
