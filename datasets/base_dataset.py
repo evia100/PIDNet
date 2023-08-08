@@ -38,7 +38,12 @@ class BaseDataset(data.Dataset):
             image = image.astype(np.float32)[:, :, ::-1]
         else:
             image = image.astype(np.float32)
+
         image = image / 255.0
+        # calculate mean and std of the image
+        self.mean = [np.mean(image),np.mean(image),np.mean(image)]
+        self.std = [np.std(image),np.std(image),np.std(image)]
+
         image -= self.mean
         image /= self.std
         return image

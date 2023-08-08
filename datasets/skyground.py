@@ -12,6 +12,7 @@ from PIL import Image
 from segment_anything import SamPredictor, sam_model_registry
 import torch
 from .base_dataset import BaseDataset
+import wandb
 import matplotlib.pyplot as plt
 
 def show_mask(mask, ax=None, random_color=False):
@@ -126,7 +127,11 @@ class SkyGround(BaseDataset):
         resized_image = cv2.resize(image, (640, 480))
 
         # Convert the resized image to grayscale
-        #image = cv2.cvtColor(resized_image, cv2.COLOR_BGR2GRAY)
+        image = cv2.cvtColor(resized_image, cv2.COLOR_BGR2GRAY)
+        # Create a 3-channel grayscale image
+        image = np.stack((image,) * 3, axis=-1)
+
+        wandb.log({"input image": wandb.Image(image)})
 
         size = image.shape
 
@@ -168,6 +173,7 @@ class SkyGround(BaseDataset):
         label = self.convert_label(label)
         image, label, edge = self.gen_sample(image, label,
                                 self.multi_scale, self.flip, edge_size=self.bd_dilate_size,city=False)
+
 
         return image.copy(), label.copy(), edge.copy(), np.array(size), name
 

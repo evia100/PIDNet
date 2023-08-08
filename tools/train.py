@@ -18,13 +18,12 @@ import torch.optim
 from tensorboardX import SummaryWriter
 
 import _init_paths
-import models
-import datasets
-from configs import config
-from configs import update_config
-from utils.criterion import CrossEntropy, OhemCrossEntropy, BondaryLoss
-from utils.function import train, validate
-from utils.utils import create_logger, FullModel
+import PIDNet.models as models
+import PIDNet.datasets as datasets
+from PIDNet.configs import config,update_config
+from PIDNet.utils.criterion import CrossEntropy, OhemCrossEntropy, BondaryLoss
+from PIDNet.utils.function import train, validate
+from PIDNet.utils.utils import create_logger, FullModel
 import wandb
 from datetime import datetime
 
